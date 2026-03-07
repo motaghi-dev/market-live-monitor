@@ -1,0 +1,20 @@
+# Secrets
+cookies.txt
+.env
+
+# Virtual env
+.venv/
+
+# Runtime outputs
+chunks/
+transcripts/
+transcripts_segments/
+summaries/
+logs/
+algoalps.db
+algoalps.db-wal
+algoalps.db-shm
+
+# Python noise
+__pycache__/
+*.pyc
