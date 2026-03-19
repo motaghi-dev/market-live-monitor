@@ -11,7 +11,7 @@ DB_PATH = Path("algoalps.db")
 STOCKS_CSV = Path("stocks_universe.csv")
 
 # -------------------------
-# Canonical alias dictionaries (expand over time)
+# Canonical alias dictionaries 
 # -------------------------
 PERSON_ALIASES = {
     "Donald Trump": [
@@ -29,7 +29,7 @@ COUNTRY_ALIASES = {
     "European Union": ["EU", "European Union"],
 }
 
-# Macro topics -> regex patterns (case-insensitive)
+# Macro topics
 MACRO_RULES = {
     "CPI": [r"\bcpi\b", r"\bconsumer price index\b"],
     "Inflation": [r"\binflation\b", r"\binflationary\b"],
@@ -78,7 +78,7 @@ def build_alias_index(conn, type_, canonical_to_aliases, meta_by_canonical=None)
         meta = meta_by_canonical.get(canonical) if meta_by_canonical else None
         eid = get_or_create_entity(conn, canonical=canonical, type_=type_, meta=meta)
 
-        # include canonical as alias too
+        # include canonical as alias 
         for a in [canonical] + list(aliases):
             a = (a or "").strip()
             if not a:
@@ -87,13 +87,13 @@ def build_alias_index(conn, type_, canonical_to_aliases, meta_by_canonical=None)
             alias_to_entity_id[a.lower()] = eid
             all_aliases.append(a)
 
-    # Build one regex:
-    # Sort by length so longer phrases match first (helps "United States" before "US")
+ 
+    # Sort by length so longer phrases match first
     uniq = sorted(set(all_aliases), key=len, reverse=True)
     if not uniq:
         return {}, None
 
-    # word-ish boundaries: avoid matching inside other words
+    
     parts = [re.escape(x) for x in uniq]
     pattern = r"(?i)(?<!\w)(" + "|".join(parts) + r")(?!\w)"
     regex = re.compile(pattern)
@@ -126,7 +126,7 @@ def bootstrap_entities(conn):
     # Countries
     country_map, country_regex = build_alias_index(conn, "COUNTRY", COUNTRY_ALIASES)
 
-    # Macros (canonical-only entities + compiled per-topic regexes)
+    # Macros 
     macro_entities = {}
     for canonical, patterns in MACRO_RULES.items():
         eid = get_or_create_entity(conn, canonical=canonical, type_="MACRO", meta=None)
@@ -138,7 +138,7 @@ def bootstrap_entities(conn):
 def tag_from_regex(conn, chunk_id, text, type_name, alias_to_entity_id, regex, confidence, source):
     if not regex:
         return
-    seen = set()  # (entity_id, mention_lower)
+    seen = set()  
     for m in regex.finditer(text):
         mention = m.group(1)
         eid = alias_to_entity_id.get(mention.lower())
