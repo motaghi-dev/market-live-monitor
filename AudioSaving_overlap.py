@@ -24,9 +24,9 @@ PLAYER_CLIENT = "android"
 # Sliding window params
 DURATION_SEC = 300
 OVERLAP_SEC = 5
-STEP_SEC = DURATION_SEC - OVERLAP_SEC  # 295
+STEP_SEC = DURATION_SEC - OVERLAP_SEC  
 
-# Audio encode params (speech-friendly, small)
+
 AUDIO_SR = "16000"
 AUDIO_CHANNELS = "1"
 AUDIO_BITRATE = "48k"
@@ -50,7 +50,7 @@ def ensure_tools():
     ytdlp_ok = shutil.which("yt-dlp") is not None
     if not ytdlp_ok:
         try:
-            import yt_dlp  # noqa: F401
+            import yt_dlp 
             ytdlp_ok = True
         except Exception:
             ytdlp_ok = False
@@ -95,7 +95,7 @@ def record_one_chunk(out_file: Path) -> None:
         "-loglevel", "warning",
         "-y",
         "-i", "pipe:0",
-        "-t", str(DURATION_SEC),      # <-- fixed-duration chunk
+        "-t", str(DURATION_SEC),    
         "-vn",
         "-ac", AUDIO_CHANNELS,
         "-ar", AUDIO_SR,
@@ -112,7 +112,7 @@ def record_one_chunk(out_file: Path) -> None:
 
     try:
         rc = ffmpeg.wait()
-        # If ffmpeg stops early, terminate yt-dlp too
+     
         if rc != 0:
             raise RuntimeError(f"ffmpeg exited with code {rc}")
     finally:
@@ -197,7 +197,7 @@ def main():
 
             print("Saved:", out_file.name, "end:", end_ts, flush=True)
 
-            # Sleep to maintain the sliding step
+     
             elapsed = end_epoch - start_epoch
             sleep_for = max(0.0, STEP_SEC - elapsed)
             if sleep_for > 0:
