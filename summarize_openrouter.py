@@ -13,7 +13,7 @@ DB_PATH = Path("algoalps.db")
 
 MODEL = "arcee-ai/trinity-large-preview:free"
 POLL_SECONDS = 2
-MAX_CONTEXT_CHUNKS = 5  # include last N summaries as context to reduce repetition
+MAX_CONTEXT_CHUNKS = 5  
 
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 if not OPENROUTER_API_KEY:
@@ -66,7 +66,7 @@ def call_openrouter(messages):
     return data["choices"][0]["message"]["content"]
 
 def stem_to_audio_path(stem: str) -> Path:
-    # Your transcript filenames are chunk_00000.txt, so the audio should be chunks/chunk_00000.mp3
+ 
     return Path("chunks") / f"{stem}.mp3"
 
 def main():
@@ -94,7 +94,7 @@ def main():
             if not transcript:
                 continue
 
-            # Build context from recent summaries
+      
             context_block = "\n".join(f"- {s}" for s in recent_summaries[-MAX_CONTEXT_CHUNKS:]) or "(none)"
 
             user_prompt = f"""Recent context (previous chunk summaries):
@@ -120,7 +120,6 @@ Current 5-minute transcript ({txt_path.name}):
                 out_json = SUMMARIES_DIR / f"{stem}.json"
                 out_json.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
 
-                # Upsert to DB (link by audio_path -> chunk_id)
                 audio_path = stem_to_audio_path(stem).resolve()
                 chunk_id = get_chunk_by_audio_path(conn, str(audio_path))
                 if chunk_id is not None:
@@ -128,7 +127,7 @@ Current 5-minute transcript ({txt_path.name}):
                 else:
                     print("DB: No chunk row found yet for", audio_path.name, "(kept JSON file)")
 
-                # Update rolling context
+      
                 headline = result.get("headline", "")
                 bullets = result.get("bullets", [])
                 recent_summaries.append(headline + " | " + " ".join(bullets[:3]))
