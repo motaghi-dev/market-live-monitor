@@ -1,17 +1,3 @@
-"""
-Transcribe YouTube chunk MP3s locally using faster-whisper AND write structured records to SQLite.
-
-What this does:
-- Watches ./chunks for new chunk_*.mp3 files
-- Waits until a file is finished writing (stable size)
-- Transcribes it with faster-whisper
-- Saves text to ./transcripts/chunk_XXXXX.txt
-- (Optional) saves a JSON with timestamps/segments
-- Upserts transcript records into SQLite (algoalps.db) linked to the chunk row by audio_path
-
-Repo-friendly (no absolute paths).
-"""
-
 import time
 import json
 from pathlib import Path
@@ -23,20 +9,20 @@ from db import connect, init_db, get_chunk_by_audio_path, upsert_transcript
 # -------------------------
 CHUNKS_DIR = Path("chunks")
 TRANSCRIPTS_DIR = Path("transcripts")
-SEGMENTS_DIR = Path("transcripts_segments")  # optional structured output
+SEGMENTS_DIR = Path("transcripts_segments")  
 DB_PATH = Path("algoalps.db")
 
-MODEL_SIZE = "small"   # tiny / base / small / medium / large-v3
-LANGUAGE = "en"        # set None to auto-detect
-DEVICE = "cpu"         # "cpu" or "cuda" (NVIDIA GPU)
-COMPUTE_TYPE = "int8"  # cpu: "int8" is fast; cuda: "float16" is common
+MODEL_SIZE = "small"   
+LANGUAGE = "en"       
+DEVICE = "cpu"       
+COMPUTE_TYPE = "int8" 
 
 POLL_SECONDS = 2
-STABLE_SECONDS = 3     # file must be unchanged for this long to be "done"
+STABLE_SECONDS = 3    
 
-SAVE_SEGMENTS_JSON = True  # saves per-segment timestamps too
+SAVE_SEGMENTS_JSON = True  
 
-# VAD can sometimes yield empty output; start conservative
+
 VAD_FILTER = False
 VAD_MIN_SILENCE_MS = 500
 
@@ -56,7 +42,6 @@ def is_file_stable(path: Path, stable_seconds: int) -> bool:
 
 
 def main():
-    # Import here so the script fails fast with a clear message if not installed
     try:
         from faster_whisper import WhisperModel
     except ImportError:
@@ -142,7 +127,7 @@ def main():
                     }
                     out_json.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
-                # Link transcript -> chunk row via audio_path
+                # Link transcript 
                 chunk_id = get_chunk_by_audio_path(conn, str(audio_path.resolve()))
                 if chunk_id is not None:
                     upsert_transcript(
@@ -154,19 +139,16 @@ def main():
                         language=LANGUAGE or getattr(info, "language", None),
                     )
                 else:
-                    # This just means you ran transcriber before the capture script inserted chunks into DB
                     print("DB: No chunk row found yet for", audio_path.name, "(will still keep .txt)")
 
                 done.add(stem)
                 print("Saved:", out_txt.name, f"({len(full_text)} chars)")
 
-                # If output is empty, suggest enabling/disabling VAD or checking audio content
                 if len(full_text) == 0:
                     print("Note: transcript is empty. Try VAD_FILTER=False (current) or verify audio has speech.")
 
             except Exception as e:
                 print("Failed:", audio_path.name, "error:", repr(e))
-                # do not mark done; will retry
 
         time.sleep(POLL_SECONDS)
 
