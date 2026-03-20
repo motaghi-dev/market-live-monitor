@@ -1,4 +1,4 @@
-# AlgoAlps Live Monitor
+# Live Monitor
 
 This repo is a simple pipeline for monitoring a live financial stream.
 
